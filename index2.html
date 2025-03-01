@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Карта парковки</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: none;
+            padding: 20px;
+        }
+
+        .map-container {
+            position: relative;
+            max-width: 1000px;
+            margin: 20px auto;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            background: white;
+        }
+
+        .map-image {
+            width: 100%;
+            height: auto;
+            cursor: crosshair;
+            display: block;
+        }
+
+        .comment-form {
+            position: absolute;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+            display: none;
+        }
+
+        .comment-input {
+            width: 200px;
+            height: 80px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: none;
+        }
+
+        .submit-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .comment-marker {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: #ff4757;
+            border-radius: 50%;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+        }
+
+        .comment-text {
+            position: absolute;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            max-width: 200px;
+            word-wrap: break-word;
+            display: none;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Страница карты -->
+    <div class="container" id="mapPage">
+        <button class="back-button" onclick="showPage('main')">Назад</button>
+        <div class="map-container">
+            <img src="https://picsum.photos/1000/600" alt="Карта парковки" class="map-image" id="parkingMap">
+            <div class="comment-form" id="commentForm">
+                <textarea class="comment-input" placeholder="Ваш комментарий..."></textarea>
+                <button class="submit-button" onclick="addComment()">Отправить</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let comments = [];
+        let currentPosition = { x: 0, y: 0 };
+
+        // Показать нужную страницу
+        function showPage(page) {
+            document.querySelectorAll('.container').forEach(el => el.style.display = 'none');
+            document.getElementById(page === 'main' ? 'mainPage' : 'mapPage').style.display = 'block';
+        }
+
+        // Обработчик клика по карте
+        document.getElementById('parkingMap').addEventListener('click', function(e) {
+            const rect = this.getBoundingClientRect();
+            currentPosition = {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+            
+            const form = document.getElementById('commentForm');
+            form.style.left = `${currentPosition.x}px`;
+            form.style.top = `${currentPosition.y}px`;
+            form.style.display = 'block';
+        });
+
+        // Добавление комментария
+        function addComment() {
+            const input = document.querySelector('.comment-input');
+            const comment = input.value.trim();
+            
+            if(comment) {
+                // Создаем маркер
+                const marker = document.createElement('div');
+                marker.className = 'comment-marker';
+                marker.style.left = `${currentPosition.x}px`;
+                marker.style.top = `${currentPosition.y}px`;
+                
+                // Создаем текст комментария
+                const text = document.createElement('div');
+                text.className = 'comment-text';
+                text.textContent = comment;
+                text.style.left = `${currentPosition.x + 20}px`;
+                text.style.top = `${currentPosition.y - 20}px`;
+                
+                // Добавляем взаимодействие
+                marker.addEventListener('mouseenter', () => text.style.display = 'block');
+                marker.addEventListener('mouseleave', () => text.style.display = 'none');
+                
+                // Сохраняем в массив
+                comments.push({ marker, text, x: currentPosition.x, y: currentPosition.y });
+                
+                // Добавляем на карту
+                document.querySelector('.map-container').appendChild(marker);
+                document.querySelector('.map-container').appendChild(text);
+            }
+            
+            // Сбрасываем форму
+            input.value = '';
+            document.getElementById('commentForm').style.display = 'none';
+        }
+
+        // Инициализация
+        window.onload = () => {
+            showPage('main');
+            document.body.style.opacity = 1;
+        }
+    </script>
+</body>
+</html>
