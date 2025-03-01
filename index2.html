@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Карта парковки</title>
+    <title>Открытая парковка</title>
     <style>
         * {
             margin: 0;
@@ -15,11 +15,59 @@
         body {
             background-color: #f5f5f5;
             min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            animation: fadeIn 1s ease-in forwards;
         }
 
-        .container {
+        /* Стили главной страницы */
+        #mainPage.container {
+            text-align: center;
+            padding: 20px;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.8s ease-out 0.3s forwards;
+        }
+
+        p {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 40px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.8s ease-out 0.6s forwards;
+        }
+
+        .start-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.8s ease-out 0.9s forwards;
+        }
+
+        /* Стили страницы с картой */
+        #mapPage.container {
             display: none;
             padding: 20px;
+            width: 100%;
+            min-height: 100vh;
         }
 
         .map-container {
@@ -98,10 +146,48 @@
             border-radius: 5px;
             cursor: pointer;
         }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            p {
+                font-size: 1rem;
+            }
+            
+            .start-button {
+                padding: 12px 30px;
+                font-size: 1rem;
+            }
+            
+            .map-container {
+                margin: 50px auto 20px;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Страница карты -->
+    <!-- Главная страница -->
+    <div class="container" id="mainPage">
+        <h1>Открытая парковка</h1>
+        <p>Здесь можно найти парковку</p>
+        <button class="start-button">Начать использовать</button>
+    </div>
+
+    <!-- Страница с картой -->
     <div class="container" id="mapPage">
         <button class="back-button" onclick="showPage('main')">Назад</button>
         <div class="map-container">
@@ -117,13 +203,22 @@
         let comments = [];
         let currentPosition = { x: 0, y: 0 };
 
-        // Показать нужную страницу
+        // Управление страницами
         function showPage(page) {
             document.querySelectorAll('.container').forEach(el => el.style.display = 'none');
-            document.getElementById(page === 'main' ? 'mainPage' : 'mapPage').style.display = 'block';
+            const activePage = document.getElementById(page === 'main' ? 'mainPage' : 'mapPage');
+            activePage.style.display = 'block';
+            
+            if(page === 'main') {
+                document.body.style.justifyContent = 'center';
+                document.body.style.alignItems = 'center';
+            } else {
+                document.body.style.justifyContent = 'flex-start';
+                document.body.style.alignItems = 'normal';
+            }
         }
 
-        // Обработчик клика по карте
+        // Обработчик карты
         document.getElementById('parkingMap').addEventListener('click', function(e) {
             const rect = this.getBoundingClientRect();
             currentPosition = {
@@ -143,32 +238,26 @@
             const comment = input.value.trim();
             
             if(comment) {
-                // Создаем маркер
                 const marker = document.createElement('div');
                 marker.className = 'comment-marker';
                 marker.style.left = `${currentPosition.x}px`;
                 marker.style.top = `${currentPosition.y}px`;
                 
-                // Создаем текст комментария
                 const text = document.createElement('div');
                 text.className = 'comment-text';
                 text.textContent = comment;
                 text.style.left = `${currentPosition.x + 20}px`;
                 text.style.top = `${currentPosition.y - 20}px`;
                 
-                // Добавляем взаимодействие
                 marker.addEventListener('mouseenter', () => text.style.display = 'block');
                 marker.addEventListener('mouseleave', () => text.style.display = 'none');
                 
-                // Сохраняем в массив
                 comments.push({ marker, text, x: currentPosition.x, y: currentPosition.y });
                 
-                // Добавляем на карту
                 document.querySelector('.map-container').appendChild(marker);
                 document.querySelector('.map-container').appendChild(text);
             }
             
-            // Сбрасываем форму
             input.value = '';
             document.getElementById('commentForm').style.display = 'none';
         }
@@ -177,6 +266,7 @@
         window.onload = () => {
             showPage('main');
             document.body.style.opacity = 1;
+            document.querySelector('.start-button').addEventListener('click', () => showPage('map'));
         }
     </script>
 </body>
